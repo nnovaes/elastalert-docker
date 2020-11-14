@@ -62,7 +62,7 @@ RUN apk update && \
     gcc \
     musl-dev \
     tzdata \
-    openntpd \
+  #  openntpd \
     wget && \
     apk add --upgrade --no-cache libxml2 libcurl curl py3-pip
 
