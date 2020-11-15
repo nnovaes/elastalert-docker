@@ -48,11 +48,14 @@ ENV ELASTALERT_INDEX log_elastalert
 WORKDIR /opt
 
 # Install software required for Elastalert and NTP for time synchronization.
+ 
 RUN apk update && \
     apk upgrade && \
     apk add \
     ca-certificates \
+#Build dependencies
     openssl-dev \
+#   libmagic ?
     openssl \
     libffi-dev \
     python3 \
@@ -113,7 +116,7 @@ COPY ./start-elastalert.sh /opt/
 RUN chmod +x /opt/start-elastalert.sh
 
 #can we remove pip?
-
+RUN apk del py-pip 
 
 # Define mount points.
 VOLUME [ "${CONFIG_DIR}", "${RULES_DIRECTORY}", "${LOG_DIR}"]
