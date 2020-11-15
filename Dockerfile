@@ -116,7 +116,7 @@ COPY ./start-elastalert.sh /opt/
 RUN chmod +x /opt/start-elastalert.sh
 
 #can we remove pip?
-RUN apk del py-pip 
+RUN apk del py3-pip 
 
 # Define mount points.
 VOLUME [ "${CONFIG_DIR}", "${RULES_DIRECTORY}", "${LOG_DIR}"]
