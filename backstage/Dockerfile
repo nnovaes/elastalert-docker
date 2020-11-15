@@ -15,7 +15,10 @@
 # Elastalert Docker image running on Alpine Linux.
 # Build image with: docker build -t ivankrizsan/elastalert:latest .
 
-FROM alpine:3.12.1
+FROM alpine
+
+LABEL maintainer="Ivan Krizsan, https://github.com/krizsan"
+
 # Set this environment variable to True to set timezone on container start.
 ENV SET_CONTAINER_TIMEZONE False
 # Default container timezone as found under the directory /usr/share/zoneinfo/.
@@ -43,84 +46,52 @@ ENV ELASTICSEARCH_TLS False
 # Verify TLS
 ENV ELASTICSEARCH_TLS_VERIFY True
 # ElastAlert writeback index
-ENV ELASTALERT_INDEX log_elastalert
+ENV ELASTALERT_INDEX elastalert_status
 
 WORKDIR /opt
 
 # Install software required for Elastalert and NTP for time synchronization.
- 
 RUN apk update && \
     apk upgrade && \
-    apk add \
-    ca-certificates \
-#Build dependencies
-    openssl-dev \
-#   libmagic ?
-    openssl \
-    libffi-dev \
-    python3 \
-    python3-dev \
-    py3-pip \
-    py3-yaml \
-    gcc \
-    musl-dev \
-    tzdata \
-  #  openntpd \
-    wget && \
-    apk add --upgrade --no-cache libxml2 libcurl curl py3-pip
-
-RUN pip install -U pip && \
-    pip install "setuptools>=11.3" 
-
-
-
-
+    apk add ca-certificates openssl-dev openssl libffi-dev python2 python2-dev py2-pip py2-yaml gcc musl-dev tzdata openntpd wget && \
 # Download and unpack Elastalert.
-RUN wget -O elastalert.zip "${ELASTALERT_URL}" && \
+    wget -O elastalert.zip "${ELASTALERT_URL}" && \
     unzip elastalert.zip && \
     rm elastalert.zip && \
-    mv e* "${ELASTALERT_HOME}" 
+    mv e* "${ELASTALERT_HOME}"
 
 WORKDIR "${ELASTALERT_HOME}"
-    
-RUN python3 setup.py install && \
+
+# Install Elastalert.
+RUN python setup.py install && \
     pip install -e . && \
     pip uninstall twilio --yes && \
-    pip install twilio==6.0.0  && \
-    # Install Supervisor.
-    easy_install supervisor 
+    pip install twilio==6.0.0 && \
 
-
-
-#remove unecessary stuff
-# apk del gcc libffi-dev musl-dev python3-dev openssl-dev
+# Install Supervisor.
+    easy_install supervisor && \
 
 # Create directories. The /var/empty directory is used by openntpd.
-RUN mkdir -p "${CONFIG_DIR}" && \
+    mkdir -p "${CONFIG_DIR}" && \
     mkdir -p "${RULES_DIRECTORY}" && \
     mkdir -p "${LOG_DIR}" && \
-    mkdir -p /var/empty 
+    mkdir -p /var/empty && \
 
 # Clean up.
-RUN apk del python3-dev && \
+    apk del python2-dev && \
     apk del musl-dev && \
     apk del gcc && \
     apk del openssl-dev && \
     apk del libffi-dev && \
     rm -rf /var/cache/apk/*
 
-
 # Copy the script used to launch the Elastalert when a container is started.
 COPY ./start-elastalert.sh /opt/
 # Make the start-script executable.
 RUN chmod +x /opt/start-elastalert.sh
-
-#can we remove pip?
-RUN apk del py-pip 
 
 # Define mount points.
 VOLUME [ "${CONFIG_DIR}", "${RULES_DIRECTORY}", "${LOG_DIR}"]
 
 # Launch Elastalert when a container is started.
 CMD ["/opt/start-elastalert.sh"]
-
