@@ -15,13 +15,13 @@
 # Elastalert Docker image running on Alpine Linux.
 # Build image with: docker build -t ivankrizsan/elastalert:latest .
 
-FROM alpine:3.12.1
+FROM alpine:edge
 # Set this environment variable to True to set timezone on container start.
 ENV SET_CONTAINER_TIMEZONE False
 # Default container timezone as found under the directory /usr/share/zoneinfo/.
 ENV CONTAINER_TIMEZONE Europe/Stockholm
 # URL from which to download Elastalert.
-ENV ELASTALERT_URL https://github.com/Yelp/elastalert/archive/master.zip
+ENV ELASTALERT_URL https://github.com/nnovaes/elastalert/archive/master.zip
 # Directory holding configuration for Elastalert and Supervisor.
 ENV CONFIG_DIR /opt/config
 # Elastalert rules directory.
@@ -122,5 +122,5 @@ RUN apk del py3-pip
 VOLUME [ "${CONFIG_DIR}", "${RULES_DIRECTORY}", "${LOG_DIR}"]
 
 # Launch Elastalert when a container is started.
-#CMD ["/opt/start-elastalert.sh"]
+CMD ["/opt/start-elastalert.sh"]
 
