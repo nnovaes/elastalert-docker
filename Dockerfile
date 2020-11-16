@@ -122,5 +122,5 @@ RUN apk del py3-pip
 VOLUME [ "${CONFIG_DIR}", "${RULES_DIRECTORY}", "${LOG_DIR}"]
 
 # Launch Elastalert when a container is started.
-CMD ["/opt/start-elastalert.sh"]
+#CMD ["/opt/start-elastalert.sh"]
 
