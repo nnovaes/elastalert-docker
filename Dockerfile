@@ -1,21 +1,5 @@
-# Copyright 2015-2017 Ivan Krizsan
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-# Elastalert Docker image running on Alpine Linux.
-# Build image with: docker build -t ivankrizsan/elastalert:latest .
-
-FROM alpine:3.12
+FROM phusion/baseimage:bionic-1.0.0
 # Set this environment variable to True to set timezone on container start.
 ENV SET_CONTAINER_TIMEZONE False
 # Default container timezone as found under the directory /usr/share/zoneinfo/.
@@ -49,30 +33,32 @@ WORKDIR /opt
 
 # Install software required for Elastalert and NTP for time synchronization.
  
-RUN apk update && \
-    apk upgrade && \
-    apk add \
+RUN apt-get update && apt-get upgrade -y -o Dpkg::Options::="--force-confold"
+
+
+RUN apt-get install -y \
     ca-certificates \
 #Build dependencies
-    openssl-dev \
+    libssl-dev \
 #   libmagic ?
     openssl \
     libffi-dev \
     python3 \
     python3-dev \
-    py3-pip \
-    py3-yaml \
+    python3-pip \
+    python3-yaml \
     gcc \
     musl-dev \
     tzdata \
   #  openntpd \
-    wget && \
-    apk add --upgrade --no-cache libxml2 libcurl curl py3-pip
+    wget  \
+    libxml2 \
+    libcurl4-openssl-dev \
+    curl \
+    unzip
 
-RUN pip install -U pip && \
-    pip install "setuptools>=11.3" 
-
-
+RUN pip3 install -U pip && \
+    pip3 install "setuptools>=11.3" 
 
 
 # Download and unpack Elastalert.
@@ -84,12 +70,11 @@ RUN wget -O elastalert.zip "${ELASTALERT_URL}" && \
 WORKDIR "${ELASTALERT_HOME}"
     
 RUN python3 setup.py install && \
-    pip install -e . && \
-    pip uninstall twilio --yes && \
-    pip install twilio==6.0.0  && \
+    pip3 install -e . && \
+    pip3 uninstall twilio --yes && \
+    pip3 install twilio==6.0.0  && \
     # Install Supervisor.
     easy_install supervisor 
-
 
 
 #remove unecessary stuff
@@ -101,13 +86,15 @@ RUN mkdir -p "${CONFIG_DIR}" && \
     mkdir -p "${LOG_DIR}" && \
     mkdir -p /var/empty 
 
+
 # Clean up.
-RUN apk del python3-dev && \
-    apk del musl-dev && \
-    apk del gcc && \
-    apk del openssl-dev && \
-    apk del libffi-dev && \
-    rm -rf /var/cache/apk/*
+RUN apt-get remove -y \
+    python3-dev \
+    musl-dev \
+    gcc \
+    libssl-dev \
+    libffi-dev 
+
 
 
 # Copy the script used to launch the Elastalert when a container is started.
@@ -115,11 +102,15 @@ COPY ./start-elastalert.sh /opt/
 # Make the start-script executable.
 RUN chmod +x /opt/start-elastalert.sh
 
-RUN apk del py3-pip 
+#RUN apk del py3-pip 
 
+
+# instead of Define mount points.
+#VOLUME [ "${CONFIG_DIR}", "${RULES_DIRECTORY}", "${LOG_DIR}"]
+# we're copying the files directly, so it's immutable
 COPY ./config ${CONFIG_DIR}
 COPY ./rules ${RULES_DIRECTORY}
 
 # Launch Elastalert when a container is started.
-#CMD ["/opt/start-elastalert.sh"]
+CMD ["/opt/start-elastalert.sh"]
 
