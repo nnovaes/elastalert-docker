@@ -18,7 +18,18 @@ RUN pip3 install -r /opt/requirements.txt
 
 # Install elastalert
 RUN pip3 install elastalert  
+COPY ./config/  ./opt/config    
+COPY ./rules    ./opt/rules
+
 
 RUN pip3 install -U jira
+
+# cleanup
+
+#RUN apt-get remove -y \
+#    python3-dev \
+#    python3-pip  \
+#    libssl-dev \
+#    libffi-dev
 
 CMD ["/bin/sh"]
