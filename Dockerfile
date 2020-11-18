@@ -17,4 +17,8 @@ COPY ./requirements.txt ./
 RUN pip3 install -r /opt/requirements.txt
 
 # Install elastalert
-RUN pip3 install elastalert 
+RUN pip3 install elastalert  
+
+RUN pip3 install -U jira
+
+CMD ["/bin/sh"]
