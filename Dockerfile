@@ -13,8 +13,8 @@ RUN apt-get install -y \
     libssl-dev
 
 # Install required python packages
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
+COPY ./requirements.txt ./
+RUN pip3 install -r /opt/requirements.txt
 
 # Install elastalert
-RUN pip install elastalert 
+RUN pip3 install elastalert 
