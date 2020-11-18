@@ -1,2 +1,2 @@
 FROM jertel/elastalert-docker
-RUN apk delete 
+RUN apk del python3-pip
